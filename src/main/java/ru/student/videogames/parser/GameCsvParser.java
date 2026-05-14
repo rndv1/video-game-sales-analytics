@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GameCsvParser {
+    private static final String UNKNOWN = "Unknown";
+
     public List<RawGameRecord> parse(Path csvPath) throws IOException {
         List<RawGameRecord> records = new ArrayList<>();
 
@@ -60,14 +62,14 @@ public class GameCsvParser {
                     parseInt(required(record, "Rank")),
                     required(record, "Name"),
                     required(record, "Platform"),
-                    parseYear(required(record, "Year")),
+                    parseYear(value(record, "Year")),
                     required(record, "Genre"),
-                    required(record, "Publisher"),
-                    parseDouble(required(record, "NA_Sales")),
-                    parseDouble(required(record, "EU_Sales")),
-                    parseDouble(required(record, "JP_Sales")),
-                    parseDouble(required(record, "Other_Sales")),
-                    parseDouble(required(record, "Global_Sales"))
+                    publisher(value(record, "Publisher")),
+                    parseDouble(value(record, "NA_Sales")),
+                    parseDouble(value(record, "EU_Sales")),
+                    parseDouble(value(record, "JP_Sales")),
+                    parseDouble(value(record, "Other_Sales")),
+                    parseDouble(value(record, "Global_Sales"))
             );
         } catch (RuntimeException exception) {
             throw new IllegalArgumentException("Cannot parse CSV record #" + record.getRecordNumber(), exception);
@@ -90,7 +92,18 @@ public class GameCsvParser {
         return value.replace("\uFEFF", "").trim();
     }
 
+    private String publisher(String value) {
+        if (value.isBlank() || "N/A".equalsIgnoreCase(value)) {
+            return UNKNOWN;
+        }
+        return value;
+    }
+
     private Integer parseYear(String value) {
+        if (value.isBlank() || "N/A".equalsIgnoreCase(value)) {
+            return null;
+        }
+
         double yearAsDouble = Double.parseDouble(value);
         return (int) yearAsDouble;
     }
@@ -100,6 +113,9 @@ public class GameCsvParser {
     }
 
     private double parseDouble(String value) {
+        if (value.isBlank() || "N/A".equalsIgnoreCase(value)) {
+            return 0.0;
+        }
         return Double.parseDouble(value);
     }
 }
