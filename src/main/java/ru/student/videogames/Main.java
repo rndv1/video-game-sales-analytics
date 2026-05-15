@@ -3,41 +3,55 @@ package ru.student.videogames;
 import ru.student.videogames.config.DatabaseConfig;
 import ru.student.videogames.db.DatabaseConnectionFactory;
 import ru.student.videogames.db.DatabaseInitializer;
-import ru.student.videogames.model.RawGameRecord;
 import ru.student.videogames.parser.GameCsvParser;
+import ru.student.videogames.repository.GameRepository;
+import ru.student.videogames.repository.GenreRepository;
+import ru.student.videogames.repository.PlatformRepository;
+import ru.student.videogames.repository.PublisherRepository;
+import ru.student.videogames.repository.SalesRepository;
+import ru.student.videogames.service.ImportService;
 
 import java.sql.Connection;
-import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws Exception {
         DatabaseConfig config = DatabaseConfig.load();
-        GameCsvParser parser = new GameCsvParser();
-        List<RawGameRecord> records = parser.parse(config.getCsvPath());
 
         System.out.println("Video Game Sales Analytics");
         System.out.println("CSV file: " + config.getCsvPath());
-        System.out.println("Rows read: " + records.size());
-        System.out.println("Rows with missing year: " + countMissingYears(records));
-        System.out.println("Rows with unknown publisher: " + countUnknownPublishers(records));
+        System.out.println("Database: " + config.getDatabasePath());
         System.out.println();
 
         try (Connection connection = new DatabaseConnectionFactory(config.getDatabasePath()).createConnection()) {
             DatabaseInitializer databaseInitializer = new DatabaseInitializer(connection);
             databaseInitializer.initialize();
             System.out.println("Database initialized: " + config.getDatabasePath());
+
+            ImportService.ImportSummary summary = createImportService(connection).importFromCsv(config.getCsvPath());
+            printImportSummary(summary);
         }
     }
 
-    private static long countMissingYears(List<RawGameRecord> records) {
-        return records.stream()
-                .filter(record -> record.getYear() == null)
-                .count();
+    private static ImportService createImportService(Connection connection) {
+        return new ImportService(
+                connection,
+                new GameCsvParser(),
+                new PlatformRepository(connection),
+                new GenreRepository(connection),
+                new PublisherRepository(connection),
+                new GameRepository(connection),
+                new SalesRepository(connection)
+        );
     }
 
-    private static long countUnknownPublishers(List<RawGameRecord> records) {
-        return records.stream()
-                .filter(record -> "Unknown".equals(record.getPublisher()))
-                .count();
+    private static void printImportSummary(ImportService.ImportSummary summary) {
+        System.out.println();
+        System.out.println("Import summary");
+        System.out.println("Rows read: " + summary.getRowsRead());
+        System.out.println("Games saved: " + summary.getGamesSaved());
+        System.out.println("Duplicate games skipped: " + summary.getDuplicateGamesSkipped());
+        System.out.println("Platforms found: " + summary.getPlatformsFound());
+        System.out.println("Genres found: " + summary.getGenresFound());
+        System.out.println("Publishers found: " + summary.getPublishersFound());
     }
 }
