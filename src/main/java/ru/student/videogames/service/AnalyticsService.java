@@ -22,4 +22,8 @@ public class AnalyticsService {
     public Optional<GameSalesDto> findTopEuSalesGame(int year) throws SQLException {
         return analyticsRepository.findTopEuSalesGameByYear(year);
     }
+
+    public Optional<GameSalesDto> findTopJpSportsGame(int startYear, int endYear) throws SQLException {
+        return analyticsRepository.findTopJpSportsGame(startYear, endYear);
+    }
 }

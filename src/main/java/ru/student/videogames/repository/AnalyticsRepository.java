@@ -73,6 +73,38 @@ public class AnalyticsRepository {
         return Optional.empty();
     }
 
+    public Optional<GameSalesDto> findTopJpSportsGame(int startYear, int endYear) throws SQLException {
+        String sql = """
+                SELECT
+                    g.name,
+                    p.name AS platform,
+                    g.release_year,
+                    ge.name AS genre,
+                    pub.name AS publisher,
+                    s.jp_sales
+                FROM sales s
+                JOIN games g ON s.game_id = g.id
+                JOIN platforms p ON g.platform_id = p.id
+                JOIN genres ge ON g.genre_id = ge.id
+                JOIN publishers pub ON g.publisher_id = pub.id
+                WHERE g.release_year BETWEEN ? AND ?
+                  AND ge.name = 'Sports'
+                ORDER BY s.jp_sales DESC
+                LIMIT 1
+                """;
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, startYear);
+            statement.setInt(2, endYear);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(mapGameSales(resultSet, "jp_sales"));
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
     private GameSalesDto mapGameSales(ResultSet resultSet, String salesColumn) throws SQLException {
         int releaseYear = resultSet.getInt("release_year");
         Integer year = resultSet.wasNull() ? null : releaseYear;
