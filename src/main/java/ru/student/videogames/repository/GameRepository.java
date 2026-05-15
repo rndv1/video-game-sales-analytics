@@ -46,6 +46,19 @@ public class GameRepository {
         throw new SQLException("Cannot insert game: " + game.getName());
     }
 
+    public Integer findIdByRank(int rank) throws SQLException {
+        String sql = "SELECT id FROM games WHERE \"rank\" = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, rank);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt("id");
+                }
+            }
+        }
+        return null;
+    }
+
     public int count() throws SQLException {
         try (Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery("SELECT COUNT(*) FROM games")) {

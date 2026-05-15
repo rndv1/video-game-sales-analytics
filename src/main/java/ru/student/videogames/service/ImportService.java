@@ -47,11 +47,17 @@ public class ImportService {
         List<RawGameRecord> records = parser.parse(csvPath);
         boolean previousAutoCommit = connection.getAutoCommit();
         int savedGames = 0;
+        int duplicateGamesSkipped = 0;
 
         try {
             connection.setAutoCommit(false);
 
             for (RawGameRecord record : records) {
+                if (gameRepository.findIdByRank(record.getRank()) != null) {
+                    duplicateGamesSkipped++;
+                    continue;
+                }
+
                 int platformId = platformRepository.findOrCreate(record.getPlatform());
                 int genreId = genreRepository.findOrCreate(record.getGenre());
                 int publisherId = publisherRepository.findOrCreate(record.getPublisher());
@@ -89,6 +95,7 @@ public class ImportService {
         return new ImportSummary(
                 records.size(),
                 savedGames,
+                duplicateGamesSkipped,
                 platformRepository.count(),
                 genreRepository.count(),
                 publisherRepository.count()
@@ -106,13 +113,22 @@ public class ImportService {
     public static class ImportSummary {
         private final int rowsRead;
         private final int gamesSaved;
+        private final int duplicateGamesSkipped;
         private final int platformsFound;
         private final int genresFound;
         private final int publishersFound;
 
-        public ImportSummary(int rowsRead, int gamesSaved, int platformsFound, int genresFound, int publishersFound) {
+        public ImportSummary(
+                int rowsRead,
+                int gamesSaved,
+                int duplicateGamesSkipped,
+                int platformsFound,
+                int genresFound,
+                int publishersFound
+        ) {
             this.rowsRead = rowsRead;
             this.gamesSaved = gamesSaved;
+            this.duplicateGamesSkipped = duplicateGamesSkipped;
             this.platformsFound = platformsFound;
             this.genresFound = genresFound;
             this.publishersFound = publishersFound;
@@ -124,6 +140,10 @@ public class ImportService {
 
         public int getGamesSaved() {
             return gamesSaved;
+        }
+
+        public int getDuplicateGamesSkipped() {
+            return duplicateGamesSkipped;
         }
 
         public int getPlatformsFound() {
