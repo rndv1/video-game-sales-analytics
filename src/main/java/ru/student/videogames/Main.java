@@ -3,17 +3,26 @@ package ru.student.videogames;
 import ru.student.videogames.config.DatabaseConfig;
 import ru.student.videogames.db.DatabaseConnectionFactory;
 import ru.student.videogames.db.DatabaseInitializer;
+import ru.student.videogames.dto.GameSalesDto;
+import ru.student.videogames.dto.PlatformAverageSalesDto;
 import ru.student.videogames.parser.GameCsvParser;
+import ru.student.videogames.repository.AnalyticsRepository;
 import ru.student.videogames.repository.GameRepository;
 import ru.student.videogames.repository.GenreRepository;
 import ru.student.videogames.repository.PlatformRepository;
 import ru.student.videogames.repository.PublisherRepository;
 import ru.student.videogames.repository.SalesRepository;
+import ru.student.videogames.service.AnalyticsService;
 import ru.student.videogames.service.ImportService;
+import ru.student.videogames.util.ConsoleTablePrinter;
 
 import java.sql.Connection;
+import java.util.List;
+import java.util.Optional;
 
 public class Main {
+    private static final String SECTION = "-".repeat(60);
+
     public static void main(String[] args) throws Exception {
         DatabaseConfig config = DatabaseConfig.load();
 
@@ -29,6 +38,10 @@ public class Main {
 
             ImportService.ImportSummary summary = createImportService(connection).importFromCsv(config.getCsvPath());
             printImportSummary(summary);
+
+            AnalyticsService analyticsService = new AnalyticsService(new AnalyticsRepository(connection));
+            ConsoleTablePrinter printer = new ConsoleTablePrinter();
+            runAnalytics(analyticsService, printer);
         }
     }
 
@@ -53,5 +66,56 @@ public class Main {
         System.out.println("Platforms found: " + summary.getPlatformsFound());
         System.out.println("Genres found: " + summary.getGenresFound());
         System.out.println("Publishers found: " + summary.getPublishersFound());
+    }
+
+    private static void runAnalytics(AnalyticsService analyticsService, ConsoleTablePrinter printer) throws Exception {
+        System.out.println();
+        System.out.println("Analytics results");
+
+        printAverageSalesByPlatform(analyticsService, printer);
+        printTopEuSalesGame(analyticsService, printer);
+        printTopJpSportsGame(analyticsService, printer);
+    }
+
+    private static void printAverageSalesByPlatform(
+            AnalyticsService analyticsService,
+            ConsoleTablePrinter printer
+    ) throws Exception {
+        System.out.println();
+        System.out.println(SECTION);
+        System.out.println("Query 1. Average global sales by platform");
+        System.out.println(SECTION);
+        List<PlatformAverageSalesDto> averages = analyticsService.getAverageGlobalSalesByPlatform();
+        printer.printPlatformAverages(averages);
+    }
+
+    private static void printTopEuSalesGame(
+            AnalyticsService analyticsService,
+            ConsoleTablePrinter printer
+    ) throws Exception {
+        System.out.println();
+        System.out.println(SECTION);
+        System.out.println("Query 2. Top EU sales game in 2000");
+        System.out.println(SECTION);
+        Optional<GameSalesDto> topEuSales = analyticsService.findTopEuSalesGame(2000);
+        topEuSales.ifPresentOrElse(
+                game -> printer.printGameSales(game, "EU Sales"),
+                () -> System.out.println("No data found for year 2000.")
+        );
+    }
+
+    private static void printTopJpSportsGame(
+            AnalyticsService analyticsService,
+            ConsoleTablePrinter printer
+    ) throws Exception {
+        System.out.println();
+        System.out.println(SECTION);
+        System.out.println("Query 3. Top JP sales sports game from 2000 to 2006");
+        System.out.println(SECTION);
+        Optional<GameSalesDto> topJpSports = analyticsService.findTopJpSportsGame(2000, 2006);
+        topJpSports.ifPresentOrElse(
+                game -> printer.printGameSales(game, "JP Sales"),
+                () -> System.out.println("No sports game found for 2000-2006.")
+        );
     }
 }
