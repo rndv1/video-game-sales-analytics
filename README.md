@@ -283,6 +283,17 @@ JP Sales: 3.77
 
 ## Диаграмма
 
+График строится по первому SQL-запросу.
+
+Параметры:
+
+- название: `Average Global Sales by Platform`;
+- ось X: `Platform`;
+- ось Y: `Average Global Sales, million copies`;
+- файл: `output/charts/avg_global_sales_by_platform.png`.
+
+![Диаграмма средних глобальных продаж](screenshots/charts/avg_global_sales_by_platform.png)
+
 ## Скриншоты
 
 ### Импорт данных
