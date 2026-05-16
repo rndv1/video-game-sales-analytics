@@ -96,9 +96,69 @@ video-game-sales-analytics/
 
 ## Модель данных
 
+В SQLite используется 5 таблиц:
+
+- `platforms` — справочник платформ;
+- `genres` — справочник жанров;
+- `publishers` — справочник издателей;
+- `games` — данные об игре;
+- `sales` — показатели продаж.
+
 ## Нормализация до 3НФ
 
+Схема нормализована до третьей нормальной формы:
+
+- названия платформ вынесены в `platforms`;
+- названия жанров вынесены в `genres`;
+- названия издателей вынесены в `publishers`;
+- таблица `games` хранит только данные игры и внешние ключи на справочники;
+- таблица `sales` хранит только числовые показатели продаж и ссылку на игру;
+- неключевые атрибуты зависят от ключа своей таблицы, а не от других неключевых полей.
+
 ## Схема базы данных
+
+```sql
+CREATE TABLE IF NOT EXISTS platforms (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS genres (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS publishers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS games (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    "rank" INTEGER NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    platform_id INTEGER NOT NULL,
+    release_year INTEGER,
+    genre_id INTEGER NOT NULL,
+    publisher_id INTEGER NOT NULL,
+
+    FOREIGN KEY (platform_id) REFERENCES platforms(id),
+    FOREIGN KEY (genre_id) REFERENCES genres(id),
+    FOREIGN KEY (publisher_id) REFERENCES publishers(id)
+);
+
+CREATE TABLE IF NOT EXISTS sales (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    game_id INTEGER NOT NULL UNIQUE,
+    na_sales REAL NOT NULL,
+    eu_sales REAL NOT NULL,
+    jp_sales REAL NOT NULL,
+    other_sales REAL NOT NULL,
+    global_sales REAL NOT NULL,
+
+    FOREIGN KEY (game_id) REFERENCES games(id)
+);
+```
 
 ## SQL-запросы по варианту
 
