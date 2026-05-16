@@ -162,7 +162,124 @@ CREATE TABLE IF NOT EXISTS sales (
 
 ## SQL-запросы по варианту
 
+### 1. Средние глобальные продажи по платформам
+
+```sql
+SELECT
+    p.name AS platform,
+    ROUND(AVG(s.global_sales), 2) AS avg_global_sales
+FROM sales s
+JOIN games g ON s.game_id = g.id
+JOIN platforms p ON g.platform_id = p.id
+GROUP BY p.name
+ORDER BY avg_global_sales DESC;
+```
+
+Этот запрос также используется для построения графика.
+
+### 2. Игра с максимальными продажами в Европе за 2000 год
+
+```sql
+SELECT
+    g.name,
+    p.name AS platform,
+    g.release_year,
+    ge.name AS genre,
+    pub.name AS publisher,
+    s.eu_sales
+FROM sales s
+JOIN games g ON s.game_id = g.id
+JOIN platforms p ON g.platform_id = p.id
+JOIN genres ge ON g.genre_id = ge.id
+JOIN publishers pub ON g.publisher_id = pub.id
+WHERE g.release_year = 2000
+ORDER BY s.eu_sales DESC
+LIMIT 1;
+```
+
+Ожидаемый результат:
+
+```text
+Driver 2 — EU Sales: 2.10
+```
+
+### 3. Спортивная игра 2000-2006 с максимальными продажами в Японии
+
+```sql
+SELECT
+    g.name,
+    p.name AS platform,
+    g.release_year,
+    ge.name AS genre,
+    pub.name AS publisher,
+    s.jp_sales
+FROM sales s
+JOIN games g ON s.game_id = g.id
+JOIN platforms p ON g.platform_id = p.id
+JOIN genres ge ON g.genre_id = ge.id
+JOIN publishers pub ON g.publisher_id = pub.id
+WHERE g.release_year BETWEEN 2000 AND 2006
+  AND ge.name = 'Sports'
+ORDER BY s.jp_sales DESC
+LIMIT 1;
+```
+
+Ожидаемый результат:
+
+```text
+Wii Sports — JP Sales: 3.77
+```
+
 ## Примеры вывода
+
+```text
+Video Game Sales Analytics
+CSV file: data/games.csv
+Database: database/video_games.db
+
+Database initialized: database/video_games.db
+
+Import summary
+Rows read: 16598
+Games saved: 16598
+Duplicate games skipped: 0
+Platforms found: 31
+Genres found: 12
+Publishers found: 578
+
+Analytics results
+
+------------------------------------------------------------
+Query 1. Average global sales by platform
+------------------------------------------------------------
+| Platform | Avg Global Sales |
+|----------|------------------|
+| GB       | 2.61             |
+| NES      | 2.56             |
+| GEN      | 1.05             |
+
+Chart saved to: output/charts/avg_global_sales_by_platform.png
+
+------------------------------------------------------------
+Query 2. Top EU sales game in 2000
+------------------------------------------------------------
+Name: Driver 2
+Platform: PS
+Year: 2000
+Genre: Action
+Publisher: Atari
+EU Sales: 2.10
+
+------------------------------------------------------------
+Query 3. Top JP sales sports game from 2000 to 2006
+------------------------------------------------------------
+Name: Wii Sports
+Platform: Wii
+Year: 2006
+Genre: Sports
+Publisher: Nintendo
+JP Sales: 3.77
+```
 
 ## Диаграмма
 
