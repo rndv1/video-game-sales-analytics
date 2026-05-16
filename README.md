@@ -2,4 +2,10 @@
 
 Java Maven project for analyzing video game sales from `games.csv`.
 
-Current stage: project setup.
+## Development
+
+```bash
+mvn clean compile
+mvn test
+mvn exec:java
+```
