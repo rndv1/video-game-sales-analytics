@@ -21,11 +21,78 @@
 
 ## Вариант задания
 
+Вариант 8 — Игры.
+
+Задания:
+
+1. Построить график по средним показателям глобальных продаж, объединив их по платформам.
+2. Вывести игру с самым высоким показателем продаж в Европе за 2000 год.
+3. Вывести спортивную игру 2000-2006 года с самым высоким показателем продаж в Японии.
+
 ## Используемый CSV-файл
+
+Файл датасета:
+
+```text
+data/games.csv
+```
+
+Столбцы CSV:
+
+```text
+Rank,Name,Platform,Year,Genre,Publisher,NA_Sales,EU_Sales,JP_Sales,Other_Sales,Global_Sales
+```
+
+Особенности обработки:
+
+- пустой `Year` сохраняется как `null`;
+- год вида `2006.0` преобразуется в `2006`;
+- пустой или `N/A` `Publisher` заменяется на `Unknown`;
+- продажи читаются как `double`.
 
 ## Технологии
 
+- Java 17;
+- Maven;
+- SQLite;
+- JDBC;
+- Apache Commons CSV;
+- XChart;
+- JUnit 5;
+- Git и GitHub Pull Requests.
+
 ## Структура проекта
+
+```text
+video-game-sales-analytics/
+├── data/
+│   └── games.csv
+├── database/
+├── output/
+│   └── charts/
+├── screenshots/
+│   ├── console/
+│   └── charts/
+├── src/
+│   ├── main/
+│   │   ├── java/ru/student/videogames/
+│   │   │   ├── chart/
+│   │   │   ├── config/
+│   │   │   ├── db/
+│   │   │   ├── dto/
+│   │   │   ├── model/
+│   │   │   ├── parser/
+│   │   │   ├── repository/
+│   │   │   ├── service/
+│   │   │   ├── util/
+│   │   │   └── Main.java
+│   │   └── resources/
+│   │       └── application.properties
+│   └── test/
+│       └── java/ru/student/videogames/
+├── pom.xml
+└── README.md
+```
 
 ## Модель данных
 
