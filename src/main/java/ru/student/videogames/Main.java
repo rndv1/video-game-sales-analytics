@@ -1,5 +1,6 @@
 package ru.student.videogames;
 
+import ru.student.videogames.chart.ChartGenerator;
 import ru.student.videogames.config.DatabaseConfig;
 import ru.student.videogames.db.DatabaseConnectionFactory;
 import ru.student.videogames.db.DatabaseInitializer;
@@ -40,8 +41,9 @@ public class Main {
             printImportSummary(summary);
 
             AnalyticsService analyticsService = new AnalyticsService(new AnalyticsRepository(connection));
+            ChartGenerator chartGenerator = new ChartGenerator();
             ConsoleTablePrinter printer = new ConsoleTablePrinter();
-            runAnalytics(analyticsService, printer);
+            runAnalytics(config, analyticsService, chartGenerator, printer);
         }
     }
 
@@ -68,17 +70,24 @@ public class Main {
         System.out.println("Publishers found: " + summary.getPublishersFound());
     }
 
-    private static void runAnalytics(AnalyticsService analyticsService, ConsoleTablePrinter printer) throws Exception {
+    private static void runAnalytics(
+            DatabaseConfig config,
+            AnalyticsService analyticsService,
+            ChartGenerator chartGenerator,
+            ConsoleTablePrinter printer
+    ) throws Exception {
         System.out.println();
         System.out.println("Analytics results");
 
-        printAverageSalesByPlatform(analyticsService, printer);
+        printAverageSalesByPlatform(config, analyticsService, chartGenerator, printer);
         printTopEuSalesGame(analyticsService, printer);
         printTopJpSportsGame(analyticsService, printer);
     }
 
     private static void printAverageSalesByPlatform(
+            DatabaseConfig config,
             AnalyticsService analyticsService,
+            ChartGenerator chartGenerator,
             ConsoleTablePrinter printer
     ) throws Exception {
         System.out.println();
@@ -87,6 +96,12 @@ public class Main {
         System.out.println(SECTION);
         List<PlatformAverageSalesDto> averages = analyticsService.getAverageGlobalSalesByPlatform();
         printer.printPlatformAverages(averages);
+        chartGenerator.saveAverageGlobalSalesByPlatformChart(
+                averages,
+                config.getChartPath(),
+                config.getChartTopPlatforms()
+        );
+        System.out.println("Chart saved to: " + config.getChartPath());
     }
 
     private static void printTopEuSalesGame(
