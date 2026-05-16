@@ -314,6 +314,59 @@ JP Sales: 3.77
 
 ## Как запустить
 
+Требуется:
+
+- JDK 17 или новее;
+- Maven;
+- Git.
+
+Сборка:
+
+```bash
+mvn clean package
+```
+
+Запуск приложения:
+
+```bash
+mvn exec:java
+```
+
+Запуск тестов:
+
+```bash
+mvn test
+```
+
+После запуска создаются или обновляются:
+
+```text
+database/video_games.db
+output/charts/avg_global_sales_by_platform.png
+```
+
+Проверка SQLite через консоль:
+
+```bash
+sqlite3 database/video_games.db ".tables"
+sqlite3 database/video_games.db ".schema"
+sqlite3 database/video_games.db "SELECT COUNT(*) FROM games;"
+sqlite3 database/video_games.db "SELECT COUNT(*) FROM sales;"
+```
+
 ## Этапы разработки
 
+Разработка велась через отдельные feature-ветки и pull request'ы в `develop`:
+
+1. `feature/project-setup` — базовая Maven-структура.
+2. `feature/csv-parser` — CSV-парсер и модель сырой строки.
+3. `feature/database-schema` — SQLite-конфигурация и схема БД.
+4. `feature/data-import` — импорт CSV в нормализованные таблицы.
+5. `feature/analytics-queries` — SQL-запросы по варианту.
+6. `feature/charts` — генерация PNG-графика.
+7. `feature/tests` — тесты парсера, импорта и аналитики.
+8. `feature/readme-and-screenshots` — документация и скриншоты.
+
 ## Вывод
+
+Проект реализует полный поток обработки данных: CSV читается в Java-объекты, данные сохраняются в SQLite в нормализованной структуре, затем выполняются аналитические SQL-запросы и строится PNG-график. Ключевые слои вынесены в отдельные пакеты и покрыты базовыми JUnit-тестами.
